@@ -1,0 +1,24 @@
+.container {
+  padding-top: 2rem;
+
+  .links {
+    display: flex;
+    flex-direction: row;
+  }
+}
+.container-fluid {
+  background-color: white;
+}
+
+.rounded-custom {
+  border-radius: 0.25rem;
+}
+
+.row-background {
+  background-color: #f2f5f9;
+}
+
+.custom-border {
+  border: 3px solid #406a9e !important;
+  padding: 8px 12px;
+}

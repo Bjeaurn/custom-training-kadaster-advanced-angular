@@ -1,0 +1,72 @@
+<app-content-modal
+  [showSubmitButton]="allowEdit"
+  [cancelButtonText]="'Annuleren'"
+  title="Projectregels"
+  (openEvent)="initModal()"
+  (submitEvent)="onSubmit()">
+  <form (ngSubmit)="onSubmit()" [formGroup]="projectRegelsForm">
+    <div
+      class="kds-form-group"
+      [ngClass]="{
+        'kds-invalid': projectRegelsForm.controls['kortingspercentage'].invalid,
+      }">
+      <label class="kds-form-label" for="forms-input-field-kortingsPercentage"
+        >Kortingspercentage
+      </label>
+      <input
+        *ngIf="allowEdit"
+        formControlName="kortingspercentage"
+        class="kds-form-control"
+        type="text"
+        id="forms-input-field-kortingsPercentage"
+        [placeholder]="
+          projectRegelsForm.get('kortingPercentage')?.value ||
+          placeholderKortingsPercentage
+        " />
+      <input
+        *ngIf="!allowEdit"
+        class="kds-form-control"
+        type="text"
+        [placeholder]="
+          projectRegelsForm.get('kortingspercentage')?.value ||
+          placeholderKortingsPercentage
+        "
+        disabled />
+      <div
+        aria-atomic="true"
+        aria-live="polite"
+        class="kds-invalid-feedback"
+        role="alert">
+        <p
+          *ngIf="
+            projectRegelsForm.get('kortingspercentage')?.invalid &&
+            projectRegelsForm.get('kortingspercentage')?.touched
+          ">
+          {{ invalidKortingspercentage }}
+        </p>
+      </div>
+    </div>
+    <div
+      class="kds-form-group"
+      [ngClass]="{
+        'kds-invalid': projectRegelsForm.controls['peildatum'].invalid,
+      }">
+      <label class="kds-form-label" for="forms-input-field-peilDatum"
+        >Peildatum
+      </label>
+      <input
+        *ngIf="allowEdit"
+        formControlName="peildatum"
+        class="kds-form-control"
+        type="date"
+        id="forms-input-field-peilDatum"
+        [placeholder]="projectRegels.peilDatum || placeholderPeilDatum" />
+      <input
+        *ngIf="!allowEdit"
+        class="kds-form-control"
+        type="text"
+        [placeholder]="projectRegels.peilDatum || placeholderPeilDatum"
+        disabled />
+    </div>
+  </form>
+</app-content-modal>

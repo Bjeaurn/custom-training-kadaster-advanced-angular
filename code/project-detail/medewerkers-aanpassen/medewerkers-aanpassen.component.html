@@ -1,0 +1,143 @@
+<app-content-modal
+  title="Medewerkers"
+  (openEvent)="initModal()"
+  (cancelEvent)="clearModal()"
+  (submitEvent)="onSubmit()">
+  <div class="kds-form-group">
+    <label
+      for="input-search-medewerkers-new"
+      class="kds-form-label"
+      id="formSearchInList-label"
+      >Voeg medewerkers toe</label
+    >
+    <div class="kds-form-control-search-wrapper mt-3">
+      <input
+        role="combobox"
+        type="search"
+        class="kds-form-control"
+        id="input-search-medewerkers-new"
+        placeholder="Zoek medewerkers"
+        aria-expanded="false"
+        aria-controls="zoekTerm"
+        autocomplete="off"
+        [(ngModel)]="zoekTerm"
+        (ngModelChange)="onChangeZoekveld($event)"
+        (focus)="expandZoekveld()" />
+    </div>
+  </div>
+
+  <div
+    id="search-results"
+    class="search-results"
+    [ngClass]="{
+      scrollHeight: searchFieldClicked && filteredGebruikers.length > 5,
+      scrollStyle: searchFieldClicked,
+      noBorder: filteredGebruikers.length === 0,
+    }">
+    <ul
+      class="m-0 list-unstyled"
+      *ngIf="searchFieldClicked && filteredGebruikers.length > 0">
+      <li
+        class="p-2 d-flex justify-content-between align-items-center"
+        *ngFor="let medewerker of filteredGebruikers">
+        <span class="no-underline">{{ medewerker.gebruikersNaam }}</span>
+        <a
+          href="javascript: void(0)"
+          class="add-medewerker-link"
+          (click)="addMedewerkersToList(medewerker)"
+          ><span class="fal fa-plus"></span> Toevoegen</a
+        >
+      </li>
+    </ul>
+  </div>
+  <form (ngSubmit)="onSubmit()" [formGroup]="medewerkersToevoegenForm">
+    <div class="list-group-container" formArrayName="addedMedewerkers">
+      <ul class="list-group">
+        <li class="list-group-item list-header-striped">
+          <div class="row no-gutters list-group-title-container">
+            <span class="list-group-item-title col-12 col-md-5"
+              ><b>Medewerker</b></span
+            >
+            <span class="list-group-item-title col-12 col-md-5"
+              ><b>Rol</b></span
+            >
+          </div>
+        </li>
+        <!-- Dit zou de lijst worden met de al toegevoegde medewerkers -->
+        <li
+          class="list-group-item row-spacing border-bottom"
+          *ngFor="
+            let medewerker of addedMedewerkersFormArray.controls;
+            let i = index
+          "
+          [formGroupName]="i">
+          <div class="row no-gutters">
+            <span
+              class="col-12 col-md-5 align-self-center gebruikersnaam-field"
+              >{{ assignedGebruikersList![i].gebruikersNaam }}</span
+            >
+            <span class="col-12 col-md-6 align-self-center">
+              <div
+                class="kds-form-group"
+                [ngClass]="{
+                  'kds-invalid':
+                    addedMedewerkersFormArray.controls[i].invalid &&
+                    addedMedewerkersFormArray.controls[i].touched,
+                }">
+                <select
+                  class="custom-select kds-form-control"
+                  aria-label="Selecteer een rol voor een medewerker."
+                  formControlName="projectGebruikerRolWaarde"
+                  aria-required="true"
+                  required
+                  (change)="selectChange($event, i)">
+                  <option [value]="null" disabled aria-disabled="true">
+                    Selecteer een rol...
+                  </option>
+                  <option
+                    *ngFor="let rol of assignedGebruikersList![i].rollen"
+                    [value]="rol">
+                    {{ rol }}
+                  </option>
+                </select>
+                <div
+                  aria-atomic="true"
+                  aria-live="polite"
+                  class="kds-invalid-feedback"
+                  role="alert">
+                  <span
+                    *ngIf="
+                      addedMedewerkersFormArray.controls[i].invalid &&
+                      addedMedewerkersFormArray.controls[i].touched
+                    ">
+                    {{ messages.FORM_VALIDATION.MANDATORY_MEDEWERKER_ROL }}
+                  </span>
+                </div>
+              </div>
+            </span>
+            <button
+              *ngIf="
+                !medewerkerIsCurrentGebruiker(
+                  addedMedewerkersFormArray.value[i].verkorteGebruikersNaam
+                )
+              "
+              class="ml-2 align-self-center fal fa-trash blue-icon button-nostyle"
+              aria-label="Medewerker van project verwijderen."
+              type="button"
+              (click)="
+                confirmMedewerkerDeletion(assignedGebruikersList![i])
+              "></button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </form>
+</app-content-modal>
+
+<ng-template #confirmDeleteTemplate>
+  <app-notification-modal
+    title="Wil je een medewerker verwijderen?"
+    bodyText="Weet je het zeker dat je een medewerker wil verwijderen?"
+    confirmButtonText="Medewerker verwijderen">
+  </app-notification-modal>
+</ng-template>

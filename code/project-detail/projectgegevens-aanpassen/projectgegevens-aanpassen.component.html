@@ -1,0 +1,113 @@
+<app-content-modal
+  [showSubmitButton]="allowEdit"
+  title="Bewerk projectgegevens"
+  (openEvent)="initModal()"
+  (submitEvent)="onSubmit()">
+  <form (ngSubmit)="onSubmit()" [formGroup]="projectGegevensForm">
+    <div class="kds-form-group">
+      <label class="kds-form-label" for="forms-input-field-projectType"
+        >Soort project</label
+      >
+      <input
+        class="kds-form-control"
+        type="text"
+        id="forms-input-field-projectType"
+        name="forms-input-field-projectType"
+        placeholder="{{ projectType }}"
+        disabled />
+    </div>
+    <div class="kds-form-group">
+      <label class="kds-form-label mt-2" for="forms-input-field-projectNumber"
+        >Projectnummer</label
+      >
+      <input
+        class="kds-form-control"
+        type="text"
+        id="forms-input-field-projectNumber"
+        name="forms-input-field-projectNumber"
+        placeholder="{{ projectNumber }}"
+        disabled />
+    </div>
+    <div
+      class="kds-form-group"
+      [ngClass]="{
+        'kds-invalid':
+          projectGegevensForm.controls['projectNaam'].invalid &&
+          projectGegevensForm.controls['projectNaam'].touched,
+      }">
+      <label class="kds-form-label mt-2" for="forms-input-field-projectNaam"
+        >Projectnaam</label
+      >
+
+      <input
+        *ngIf="!allowEdit"
+        class="kds-form-control"
+        type="text"
+        placeholder="{{ projectDetails.projectNaam }}"
+        disabled />
+      <input
+        *ngIf="allowEdit"
+        class="kds-form-control"
+        formControlName="projectNaam"
+        id="forms-input-field-projectNaam"
+        required
+        type="text" />
+      <div
+        aria-atomic="true"
+        aria-live="polite"
+        class="kds-invalid-feedback"
+        role="alert">
+        <span
+          *ngIf="
+            projectGegevensForm.controls['projectNaam'].errors?.['required']
+          ">
+          {{ mandatoryProjectNaam }}
+        </span>
+        <span
+          *ngIf="
+            projectGegevensForm.controls['projectNaam'].errors?.['maxlength']
+          ">
+          {{ invalidMax300CharsMessage }}
+        </span>
+      </div>
+    </div>
+    <div
+      class="kds-form-group"
+      [ngClass]="{
+        'kds-invalid':
+          projectGegevensForm.controls['omschrijving'].invalid &&
+          projectGegevensForm.controls['omschrijving'].touched,
+      }">
+      <label class="kds-form-label mt-2" for="forms-text-area-omschrijving"
+        >Omschrijving<span class="font-weight-normal">
+          (niet verplicht)</span
+        ></label
+      >
+      <textarea
+        *ngIf="!allowEdit"
+        class="kds-form-control"
+        type="text"
+        placeholder="{{ projectDetails.projectOmschrijving }}"
+        disabled></textarea>
+      <textarea
+        *ngIf="allowEdit"
+        class="kds-form-control"
+        formControlName="omschrijving"
+        id="forms-text-area-omschrijving"
+        name="textArea"
+        type="text"></textarea>
+      <div
+        aria-atomic="true"
+        aria-live="polite"
+        class="kds-invalid-feedback"
+        role="alert">
+        <span
+          *ngIf="
+            projectGegevensForm.controls['omschrijving'].errors?.['maxlength']
+          ">
+          {{ invalidMax1000CharsMessage }}
+        </span>
+      </div>
+    </div>
+  </form>
+</app-content-modal>

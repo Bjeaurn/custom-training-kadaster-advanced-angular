@@ -1,0 +1,213 @@
+<div>
+  <div class="row" *ngIf="projectDetails">
+    <!--    linker segment-->
+    <div class="col-8">
+      <app-project-back-button></app-project-back-button>
+      <h1 class="h2">
+        {{ projectDetails.projectNaam }}
+      </h1>
+      <div class="accordion" id="projectAccordion">
+        <div
+          class="card"
+          *ngIf="projectDetails.projectType.code === PROJECT_TYPES.WET">
+          <div class="card-header" id="headingOne">
+            <h2 class="mb-0 h4">
+              <button
+                class="kds-link"
+                type="button"
+                data-toggle="collapse"
+                data-target="#collapseOne"
+                aria-expanded="true"
+                aria-controls="collapseOne">
+                Blokgrens
+              </button>
+            </h2>
+          </div>
+          <div
+            id="collapseOne"
+            class="collapse show"
+            aria-labelledby="headingOne"
+            data-parent="#projectAccordion">
+            <div class="card-body">
+              <div class="col">
+                <div>
+                  <a
+                    [routerLink]="
+                      '/' +
+                      baseUrl +
+                      '/projecten/project-blokgrens/' +
+                      projectSleutel
+                    ">
+                    <span
+                      class="fal fa-angle-right icon-prefix"
+                      aria-hidden="true"></span>
+                    Beheer blokgrens
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header" id="headingTwo">
+            <h2 class="mb-0 h4">
+              <button
+                class="kds-link"
+                type="button"
+                data-toggle="collapse"
+                data-target="#collapseTwo"
+                aria-expanded="false"
+                aria-controls="collapseTwo">
+                Uitgangssituatie creëren
+              </button>
+            </h2>
+          </div>
+          <div
+            id="collapseTwo"
+            class="collapse"
+            aria-labelledby="headingTwo"
+            data-parent="#projectAccordion">
+            <div class="card-body">
+              <div class="col">
+                <div
+                  *ngIf="projectDetails.projectType.code === PROJECT_TYPES.WET">
+                  <a [routerLink]="['../pachtadministratie', projectSleutel]">
+                    <span
+                      class="fal fa-angle-right icon-prefix"
+                      aria-hidden="true"></span>
+                    Pachtadministratie
+                  </a>
+                </div>
+                <div>
+                  <a
+                    [routerLink]="
+                      '/' +
+                      baseUrl +
+                      '/projecten/project-nihil/' +
+                      projectSleutel
+                    ">
+                    <span
+                      class="fal fa-angle-right icon-prefix"
+                      aria-hidden="true"></span>
+                    Beheer nihil
+                  </a>
+                </div>
+                <div>
+                  <a
+                    [routerLink]="
+                      '/' +
+                      baseUrl +
+                      '/projecten/project-toedeling/' +
+                      projectSleutel
+                    ">
+                    <span
+                      class="fal fa-angle-right icon-prefix"
+                      aria-hidden="true"></span>
+                    Beheer toedelingselementen
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--    rechter segment-->
+    <div class="col-4">
+      <div class="row overflow-auto row-background">
+        <div class="col-12 p-4">
+          <img
+            class="rounded-custom mb-4 img-fluid"
+            alt="project afbeelding"
+            src="../../../../assets/images/dummy-xl.jpg" />
+          <div>
+            <h2 class="mt-0 h4">Projectbeheer</h2>
+            <div>
+              <a
+                href="javascript: void(0)"
+                id="projectGegevensLink"
+                (click)="openModal(projectGegevensModalName)"
+                ><span
+                  class="fal fa-angle-right icon-prefix"
+                  aria-hidden="true"></span
+                >Projectgegevens</a
+              >
+            </div>
+            <ng-template #projectgegevensModalTemplate>
+              <app-projectgegevens-aanpassen
+                [projectGegevensModalName]="projectGegevensModalName"
+                [projectDetails]="projectDetails"
+                (projectUpdateEvent)="submitProjectDetails($event)"
+                [allowEdit]="
+                  allowProjectGegevensEdit
+                "></app-projectgegevens-aanpassen>
+            </ng-template>
+            <div>
+              <a
+                href="javascript: void(0)"
+                id="projectRegelsLink"
+                (click)="openModal(projectRegelsModalName)"
+                ><span
+                  class="fal fa-angle-right icon-prefix"
+                  aria-hidden="true"></span
+                >Projectregels</a
+              >
+            </div>
+            <ng-template #projectregelsModalTemplate>
+              <app-projectregels-aanpassen
+                *ngIf="projectRegels$ | async as projectRegels"
+                [projectRegels]="projectRegels"
+                [allowEdit]="allowProjectRegelsEdit"
+                (projectRegelsUpdateEvent)="
+                  submitProjectRegels(projectSleutel, $event)
+                "></app-projectregels-aanpassen>
+            </ng-template>
+            <div>
+              <a
+                href="javascript: void(0)"
+                *ngIf="showMedewerkersLink"
+                id="medewerkerLink"
+                (click)="openModal(medewerkerModalName)"
+                ><span
+                  class="fal fa-angle-right icon-prefix"
+                  aria-hidden="true"></span
+                >Medewerkers</a
+              >
+            </div>
+            <ng-template #medewerkersModalTemplate>
+              <app-medewerkers-aanpassen></app-medewerkers-aanpassen>
+            </ng-template>
+          </div>
+          <p></p>
+          <div class="mb-4">
+            <h2 class="p-0 m-0 h4">Soort project</h2>
+            <p>
+              {{ projectDetails.projectType.waarde }}
+            </p>
+          </div>
+          <div class="mb-4">
+            <h2 class="= p-0 m-0 h4">Projectomschrijving</h2>
+            <p>
+              {{ projectDetails.projectOmschrijving }}
+            </p>
+          </div>
+          <div class="mb-4">
+            <h2 class="= p-0 m-0 h4">Projectnummer</h2>
+            <p>
+              {{
+                projectDetails.projectType.code + projectDetails.projectNummer
+              }}
+            </p>
+          </div>
+          <div class="mb-4 mt-4">
+            <h2 class="= pb-4 m-0 h4">Uw rol</h2>
+            <p class="border custom-border d-inline rounded-pill">
+              {{ userRole }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

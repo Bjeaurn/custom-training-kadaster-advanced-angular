@@ -1,0 +1,86 @@
+.modal-title,
+.list-group-item-title {
+  color: #00387d !important;
+}
+
+.list-group-container {
+  margin-top: 32px;
+}
+
+.list-group-title-container {
+  height: 48px !important;
+  padding: 0 7.74px;
+}
+
+.row-spacing {
+  padding: 16px 8px !important;
+}
+
+.search-results {
+  background-color: var(--wit);
+  color: var(--kobaltblauw-75-4-5-1);
+  overflow-y: scroll;
+
+  li {
+    padding: 16px 8px;
+    border-bottom: 1px solid #b3ddef;
+  }
+
+  li:hover {
+    background-color: var(--grijs-18);
+    color: var(--kobaltblauw-7-1);
+    cursor: pointer;
+  }
+}
+
+.add-medewerker-link {
+  font-size: 12px;
+}
+
+.scrollStyle {
+  border: 1px solid #406a9e;
+  border-radius: 4px;
+  border-top: none;
+  border-top-left-radius: unset;
+}
+
+.noBorder {
+  border: none;
+}
+
+.scrollHeight {
+  aspect-ratio: 2.3/1;
+}
+
+.form-with-icon-wrapper .input-icon {
+  height: 60%;
+}
+
+.list-header-striped {
+  background-color: #f2f5f9;
+  height: 48px;
+}
+
+.modal-footer {
+  padding: 0 0 2rem 0;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #eaeaea;
+}
+
+.blue-icon {
+  color: #00387d;
+}
+
+.custom-select {
+  line-height: normal;
+}
+
+.gebruikersnaam-field {
+  word-break: break-word;
+}
+
+.kds-form-control-group {
+  position: relative;
+}
