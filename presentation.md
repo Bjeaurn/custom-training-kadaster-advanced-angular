@@ -11,7 +11,7 @@ title: "Advanced Angular (for Kadaster)"
 
 ### Expectations today
 
-Note: We'll consider a case, then we'll dive into some (relevant) theory and modern best-practices, followed by some examples and possible experiments we can do.
+Note: We'll consider a case, then we'll dive into some (relevant) theory and modern best-practices, followed by some examples and possible experiments we can do. This means, today will be interactive by discussing together; but also experimenting with some ideas with our actual code!
 
 ----
 
