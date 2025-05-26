@@ -9,16 +9,9 @@ title: "Advanced Angular (for Kadaster)"
 
 ---
 
-### Table of Contents
+### Expectations today
 
-- 3 cases, per case
-- Mixed with some (relevant) theoretical approaches
-- Looking at modern best-practices
-- Examples and experiments per case
-
-// To be done after.
-
-Note: We'll consider each case, then we'll dive into some (relevant) theory and modern best-practices, followed by some examples and possible experiments we can do.
+Note: We'll consider a case, then we'll dive into some (relevant) theory and modern best-practices, followed by some examples and possible experiments we can do.
 
 ----
 
@@ -28,12 +21,29 @@ Note: Any goals from the audience? What would you hope to learn today? My take i
 
 ---
 
-// QR code to repo (no notes? Or put them in a separate folder/repo?)
+<div style="">
+  <img src="./assets/bjorn-talk.webp" width="100" style="border-radius:100%; display: inline-flex;">
+  <h1 style="font-size: 0.9em;">Bjorn Schijff</h1>
+  <small style="display: inline-flex;">Sr. Frontend Engineer / Architect</small>
+  <div>
+    <img src="./assets/codestar.svg" height="30" style="border: 0; background-color: transparent;">
+  </div>
+  <small>@Bjeaurn</small>
+  <br />
+  <small>bjorn.schijff@soprasteria.com</small>
+</div>
+
+Note: Quick introduction.
 
 ---
 
-### Case 1 
-#### "Derived state"
+<img src="./assets/repo.svg" width="400" alt="QR code to repo" />
+
+Note: Let's get the repository, but be mindful it mainly contains the example code I used, a link to Stackblitz and the presentation. It might be more interesting to try what we'll discuss locally on your actually repository. Maybe a good idea to make a little experimental branch?
+
+---
+
+## Let's get started 
 
 ----
 
@@ -45,7 +55,7 @@ Write down for yourself <br /><small>(NOTES.md, paper, comments...)</small>
 
 <small class="fragment">`./code/project-detail/medewerkers-aanpassen/`</small>
 
-Note: Get code (Medewerkers-aanpassen)[./code/project-detail/medewerkers-aanpassen/] on screen. We'll take 5-10 minutes to go through 
+Note: Make sure everyone can make notes. Get code (Medewerkers-aanpassen)[./code/project-detail/medewerkers-aanpassen/] on screen. We'll take 5-10 minutes to go through.
 
 ----
 
@@ -287,6 +297,16 @@ loadAllGebruikers() {
 }
 ```
 
+```ts
+  /**
+   * Wordt getriggered wanneer de modal opent.
+   */
+  initModal() {
+    this.loadAllGebruikers();
+  }
+```
+<!-- .element: class="fragment" -->
+
 Note: Let's talk about this. Anyone knows how many times this is being called in the component by heart? Seems like there are no refresh mechanisms, no syncing with database in between actions, nothing like that.
 
 ----
@@ -315,7 +335,11 @@ Note: Is there anything wrong with this? (Think cold observables, takeUntilDestr
 dataUnassigned$ = this.loadUnassignedGebruikers(this.projectNumber, this.projectTypeCode)
                         .pipe(takeUntilDestroyed());
 
-// What about now? This is even still considering that the underlying call is possibly a Hot Observable and may emit more then one value. Which it probably does not as it's just a REST call? Let's take it a step further.
+// What about now? 
+// This is still considering that the underlying 
+// call is possibly a Hot Observable and may emit more 
+// then one value. Which it probably does not as it's 
+// just a REST call? Let's take it a step further.
 ```
 
 ----
@@ -357,36 +381,229 @@ Note: What do we do with these (imperatively called) functions? How could we mak
 
 ----
 
-// TODO The main questions and work to do is in these comments:
-// TODO Add the map and initialize to a `tap()`, or a `map()` inside the pipe to get the correct internal model before passing it along. Tap for the side effect. Make it a part of the initial function later? Keep the definition clean! Split into multiple slides with some explanation? Maybe use the magic `toSignal()` in the end to have subscription management be completely managed by Angular? Just use the signal -> Read/Write Signals for internal state? Might be a Tap thing...
+```ts
+// One possible solution?
+data$ = forkJoin([
+          this.loadUnassignedGebruikers(this.projectNumber, this.projectTypeCode)
+            .pipe(),
+          this.loadAssignedMedewerkers(this.projectNumber, this.projectTypeCode)
+            .pipe(
+              map(this.mapAssignedMedewerkers),
+              tap(this.initializeAssignedMedewerkers),
+            )  
+        ]).pipe(takeUntilDestroyed())
+```
+
+Note: Might have to rewrite the initialize functions to not rely on internal state (imperative!) but to be passed the correct values directly.
+
+----
+
+```ts
+// Alternatively
+unassignedGebruikers$ = this.loadUnassignedGebruikers(this.projectNumber, this.projectTypeCode)
+  .pipe(takeUntilDestroyed())
+
+assignedGebruikers$ = this.loadAssignedMedewerkers(this.projectNumber, this.projectTypeCode)
+  .pipe(
+    takeUntilDestroyed(),
+    map(this.mapAssignedMedewerkers),
+    tap(this.initializeAssignedMedewerkers)
+  )
+
+data$ = forkJoin([this.unassignedGebruikers$, this.assignedGebruikers$])
+```
+
+Note: Might even be cleaner and more declarative! Be aware that if you "branch" off multiple streams from the original assignedGebruikers$, that these observables are now cold and will create a new one for each subscription.
+
+----
+
+## Signals
+
+Note: Let's make the move into modern state management as recommended by the framework itself. See if we can reduce some of this RxJS complexity for this particular case.
+
+----
+
+```ts
+// Assuming we use the data$ Observable from earlier examples.
+data = toSignal(this.data$)
+
+// data = [Gebruikers[], Medewerkers[]]
+unassignedGebruikers = linkedSignal(() => this.data()[0])
+assignedGebruikers = linkedSignal(() => this.data()[1])
+
+// https://angular.dev/guide/signals/linked-signal (Preview since v19)
+// This also takes care of our subscriptions!
+// And refreshing our data() signal will keep our gebruikers up to date!
+```
+
+Note: This should make our entire workflow reactive, and we can just rewrite the logic that updates either unassigned or assigned. We could even make that more reactive by making it one list and toggling between "Assigned" and "Unassigned"
+
+----
+
+```ts
+// Theoretical approach
+allUsers = toSignal(mergeMap([
+  this.loadUnassignedGebruikers()
+    .pipe(map()), 
+  this.loadAssignedMedewerkers()
+    .pipe(map())
+  ]).pipe(takeUntilDestroyed(), tap()))
+
+assignedUsers = computed(() => this.allUsers().filter(user => user.isAssigned === true))
+unassignedUsers = computed() => this.allUsers().filter(user => user.isAssigned === false))
+```
+
+Note: This gives you easy access to the different signals containing your assigned and unassigned users, if we make it easy to distinguish them in our "allUsers()" stream. If we turn the allUsers signal into a LinkedSignal(), we can even update its internal state and flip people's "isAssigned" flag in a centrally managed piece of logic.
 
 ----
 
 # Try it!
 
-Note: Let's take 10-15m to see if we can easily build up (part) of the initialization into an Observable? Can we turn it into a Signal too?
+Note: Let's take 10-15-20m to see if we can easily build up (part) of the initialization into an Observable? Can we turn it into a Signal too? Can we see how this also ties into the Presentational vs. Smart/Container component discussion? Let people show & tell what they did after.
+<!-- [/BLOCK] -->
 
 ---
 
-// TODO Probably done with this.
-// Gaat natuurlijk over die gekke RxJS constructies. Of het niet makkelijker te combineren is, evt. op Service niveau?
-// Wat doet die stream precies? En hoe vaak halen we data op? Meeste lijkt eenmalig te zijn en daarna frontend state.
-// Link met vorige sectie, data voor dit component zou prima uit een parent kunnen komen als een lijst (met verrijkt object "isMember true/false") of als een object met twee lijsten.
-// Try it vs. Discuss? Verwijst mogelijk ook terug naar 1e voorbeeld -> Mappers in het Component, zouden ook in de Service kunnen. Zo werk je intern in je Frontend model enkel met wat de views en de logica daar nodig heeft. Eenmalig omrekenen en verder lekker gebruiken as-is?
+<!-- [BLOCK] (Component) Testing -->
+# Testing
+
+Note: Let's put our final attention towards testing. What is the main goal or focus of testing? Disclaimer - not able to run tests in Stackblitz, might have to rely on local installations? (No real working examples prepped?)
 
 ----
+
+Resources: 
+
+- [angular.dev Testing Components Basics](https://angular.dev/guide/testing/components-basics)
+- [angular.dev Service Testing](https://angular.dev/guide/testing/services)
+
+----
+
+## Component testing
+
+- Test "what" the user wants to do<!-- .element: class="fragment" -->
+- Assert on HTML<!-- .element: class="fragment" -->
+- Not really interested in "how"<!-- .element: class="fragment" -->
+
+Note: Testing what vs how. Focus on User behavior and what they interact with (HTML).
+
+----
+
+### Component testing tools
+
+`fixture.nativeElement`
+
+`fixture.debugElement.nativeElement`
+<!-- .element: class="fragment" -->
+
+`fixture.nativeElement.querySelector()`
+<!-- .element: class="fragment" -->
+
+`fixture.nativeElement.query(By.css())`
+<!-- .element: class="fragment" -->
+
+----
+
+### Component Lifecycle
+
+`fixture.detectChanges()`
+
+```ts
+  providers: [{
+    provide: ComponentFixtureAutoDetect, 
+    useValue: true
+  }],
+```
+<!-- .element: class="fragment" -->
+
+<small class="fragment">
+
+Resource: [Component Scenarios](https://angular.dev/guide/testing/components-scenarios#detectchanges)
+</small>
+
+Note: DetectChanges() runs the Angular lifecycle first, so things like ngOnInit() get called here too automatically. We can opt-in to automatic change detection by the framework like it does in production.
+
+----
+
+```ts
+const nameInput: HTMLInputElement = hostElement.querySelector('input')!;      
+// simulate user entering a new name into the input box
+nameInput.value = 'First Name';      
+
+// Dispatch a DOM event so that Angular learns of input value change.
+nameInput.dispatchEvent(new Event('input'));
+```
+
+Note: This way we can actually make assertions about how a user would interact with out application/components. This way we can test if, given some behavior, the correct things are being called/emitted/retrieved etc.
+
+<!-- [/BLOCK] -->
+
+----
+
+## Let's consider our current case
+
+Note: Let's go back to our `medewerkers-aanpassen.component.ts` and its existing .spec file. What do we see? What could we approach differently?
+
+----
+
+# Try it!
+
+Note: Take 15-20 minutes to maybe write some new tests in a separate describe()? Or copy/paste it and clean it up to see what tests are actually useful? Don't forget at the end to give everyone time to explain and/or show what they've done.
+
+---
+
+<!-- [BLOCK] Shared routing state, short one -->
+## Shared state (routing)
+
+----
+
+```ts
+const projectSleutel = this.route.snapshot.params['projectSleutel'];
+this.projectNumber = +projectSleutel.substring(projectSleutel.length - 4);
+this.projectTypeCode = projectSleutel.substring(
+  0,
+  projectSleutel.length - 4
+);
+```
+
+----
+
+[withComponentInputBinding](https://angular.dev/api/router/withComponentInputBinding)
+
+```ts
+projectSleutel = input<string>()
+
+ngOnInit() {  // Or later in the lifecycle, not available during constructor()
+  console.log(this.projectSleutel())
+}
+```
+<!-- .element: class="fragment" -->
+
+Note: This can be enabled since Angular v16 (and is already on for our Stackblitz example). Might be a much easier way to deal with certain "reused" pieces of state being passed around. Move the functions that extract the needed data from the URL into a shared function that can be easily imported. Or use a service (that would need to be injected everywhere...). Pro's and Cons!
 
 <!-- [/BLOCK] -->
 
 ---
 
-// TODO -
+Note: If we have time left, consider the other medewerkers-aanpassen component? How much does it differ from the case we've been talking about? What would be interesting things to consider now for the team to move this forward?
 
-Case 2 / 3
- - Testing?
- - HTML testing into -> expected results. 
-   - Verschillende strategieën
-   - Marmicode (Younes) z'n spul al referentie gebruiken
+---
 
-TODO... Nog een case? Als de resterende code voorbeelden lijken op bestaande, kijken of we daar klassikaal doorheen kunnen met wat we nu spotten? Hoe zouden we dit aanpakken?
-Aanvullend; zit er een kans om de twee "medewerkers-aanpassen" componenten als een gedeeld herbruikbaar component in te zetten? Zitten er werkelijke (logica) verschillen tussen de componenten? Of zouden die, gevoed door de juiste lijsten, prima kunnen emitten wat de nieuwe lijst moet zijn voor persisting?
+# Summary
+
+Note: What did we learn? What actions do we define for our team? What parts do we need to invest more time in? Any particular parts that jumped out for you? Any ideas for what's next? Hope I helped!
+
+--- 
+
+## Thank you!
+
+<div style="">
+  <img src="./assets/bjorn.jpg" width="100" style="border-radius:100%; display: inline-flex;">
+  <h1 style="font-size: 0.9em;">Bjorn Schijff</h1>
+  <small style="display: inline-flex;">Sr. Frontend Engineer / Architect</small>
+  <div>
+    <img src="./assets/codestar.svg" height="30" style="border: 0; background-color: transparent;">
+  </div>
+  <small>@Bjeaurn</small>
+  <br />
+  <small>bjorn.schijff@soprasteria.com</small>
+</div>
