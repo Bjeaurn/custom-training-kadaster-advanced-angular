@@ -4,7 +4,7 @@
   "description": "1. Testing [/medewerkers-aanpassen/](./medewerkers-aanpassen/) 2. \"Derived state\" [project-detail/medewerkers-aanpassen/](./project-detail/medewerkers-aanpassen) 3. \"Shared state\" [project-detail/](./project-detail)",
   "main": "index.js",
   "scripts": {
-    "start": "reveal-md ./presentation.md  --highlight-theme github",
+    "start": "reveal-md ./presentation.md",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

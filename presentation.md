@@ -592,7 +592,7 @@ Note: If we have time left, consider the other medewerkers-aanpassen component? 
 
 Note: What did we learn? What actions do we define for our team? What parts do we need to invest more time in? Any particular parts that jumped out for you? Any ideas for what's next? Hope I helped!
 
---- 
+---
 
 ## Thank you!
 
